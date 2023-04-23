@@ -2,9 +2,8 @@ import { createApp } from "vue";
 import { VueFire, VueFireAuth } from "vuefire";
 import { createRouter, createWebHistory } from "vue-router";
 
-
-import App from './App.vue'
-import { Home, Auth, NotFound } from "./views";
+import App from "./App.vue";
+import { Home, Auth, NotFound, Profile } from "./views";
 import { firebaseApp } from "./firebase";
 import "./style.css";
 
@@ -12,11 +11,12 @@ const app = createApp(App);
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: "/", name: 'home', component: Home },
-    { path: "/login", name: 'login', component: Auth },
-    { path: '/:pathMatch(.*)*', name: 'notFound', component: NotFound },
+    { path: "/", name: "home", component: Home },
+    { path: "/login", name: "login", component: Auth },
+    { path: "/profile", name: "profile", component: Profile },
+    { path: "/:pathMatch(.*)*", name: "notFound", component: NotFound },
   ],
-})
+});
 
 app.use(VueFire, {
   firebaseApp,

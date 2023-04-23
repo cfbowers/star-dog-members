@@ -28,7 +28,7 @@ export const getByUid = (collection: string) => {
 
 export const upsertByUid = (collection: string) => {
   return (uid: string, data: any) => {
-    setDoc(doc(db, collection, uid), data, { merge: true });
+    return setDoc(doc(db, collection, uid), data, { merge: true });
   };
 };
 
@@ -50,3 +50,14 @@ export const queryHouseholdByOwnerUid = queryHouseholdByCollectionUid("owners");
 
 //households
 export const upsertHouseholdByUid = upsertByUid("households");
+
+//dogs
+export const upsertDogByUid = upsertByUid("dogs");
+export const getDogsByHouseholdId = (householdId: string) => {
+  const q = query(
+    collection(db, "dogs"),
+    where("householdId", "==", householdId)
+  );
+
+  return getDocs(q);
+};
