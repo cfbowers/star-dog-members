@@ -12,7 +12,9 @@
     "lib": ["ESNext", "DOM"],
     "skipLibCheck": true,
     "noEmit": true,
-    "allowJs": true
+    "allowJs": true,
+    "baseUrl": "./src",
+    "noImplicitAny": false
   },
   "include": [
     "src/**/*.ts",

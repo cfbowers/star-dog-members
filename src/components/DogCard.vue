@@ -4,6 +4,7 @@ import { PencilIcon, CheckCircleIcon } from "@heroicons/vue/24/solid";
 import { IDog } from "../types";
 
 const { dog } = defineProps<{ dog: IDog }>();
+defineEmits(["editDog"]);
 </script>
 
 <template>
@@ -25,7 +26,7 @@ const { dog } = defineProps<{ dog: IDog }>();
     <div class="flex">
       <div class="flex w-0 flex-1 border-t border-slate-200">
         <span
-          @click=""
+          @click="$emit('editDog', dog)"
           class="relative hover:bg-slate-100 inline-flex w-0 flex-1 items-center justify-center gap-x-2 py-4 text-sm border-r border-slate-200"
         >
           <PencilIcon class="h-4 w-4 text-gray-400" aria-hidden="true" />
