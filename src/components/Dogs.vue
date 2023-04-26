@@ -6,36 +6,31 @@ import { uuidv4 } from "@firebase/util";
 import DogCard from "./DogCard.vue";
 import Modal from "./Modal.vue";
 import ImageUpload from "./ImageUpload.vue";
-import { useUserHousehold } from "../composables/useUserHousehold";
-import { AgeType } from "../types";
+import { useCurrentOwner } from "../composables/useCurrentOwner";
+import { useMemoize } from "@vueuse/core";
 import {
   getDogsByHouseholdId,
   upsertDogByUid,
   upsertHouseholdByUid,
 } from "../firebase";
 
-const household = useUserHousehold();
+const owner = useCurrentOwner();
 
 const open = ref(false);
 const householdDogs = ref([]);
 const modalDog = ref(null);
 
 const newDog = {
-  uid: uuidv4(),
-  age: 0,
+  id: uuidv4(),
+  dateOfBirth: "",
   name: "",
-  ageType: AgeType.years,
   imageUrl: "",
   imageStorageName: "",
   householdId: "",
 };
 
-watch(household, () => {
-  if (household.value.householdId) getDogs();
-});
-
 const getDogs = () => {
-  getDogsByHouseholdId(household.value.householdId).then((result) => {
+  getDogsByHouseholdId(owner.value.householdId).then((result) => {
     if (!result.empty) {
       householdDogs.value = result.docs;
     }
@@ -43,22 +38,38 @@ const getDogs = () => {
 };
 
 const onOpenDogModal = (dog) => {
-  modalDog.value = dog;
+  const dogValue = dog?.data?.() ?? dog.value ?? dog;
+  modalDog.value = dogValue;
   open.value = true;
 };
 
-const onSaveDog = async () => {
-  const dogData = dog.value;
-  const dogId = dogData.uid;
+const onSaveDog = useMemoize(async (dog) => {
+  const dogId = dog.id;
+  const ownerDogs = owner?.value?.dogs ?? [];
 
-  await upsertDogByUid(dogId, dogData);
-  await upsertHouseholdByUid(household.value.householdId, {
-    dogs: [...household.value.data.dogs, dogId],
-  });
+  await upsertDogByUid(dogId, dog);
+
+  if (
+    !ownerDogs.length ||
+    !ownerDogs.some((ownerDog) => ownerDog.id === dog.id)
+  ) {
+    await upsertHouseholdByUid(owner.value.householdId, {
+      dogs: [...ownerDogs, dogId],
+    });
+  }
 
   getDogs();
   open.value = !open;
-};
+});
+
+watch(owner, () => {
+  const householdId = owner.value?.householdId;
+
+  if (householdId) {
+    newDog.householdId = householdId;
+    getDogs();
+  }
+});
 </script>
 
 <template>
@@ -66,31 +77,32 @@ const onSaveDog = async () => {
   <Modal :open="open" @change-open="open = !open" @get-dogs="getDogs">
     <div class="mt-3 text-center sm:mt-5">
       <div class="mt-8">
-        <form class="flex flex-col space-y-4" @submit.prevent="onSaveDog">
+        <form
+          class="flex flex-col space-y-4"
+          @submit.prevent="onSaveDog(modalDog)"
+        >
           <ImageUpload
             :on-new-image-storage-name="(v) => (modalDog.imageStorageName = v)"
             :on-new-image-url="(v) => (modalDog.imageUrl = v)"
+            :on-upload-status-change="(v) => (isUploadingImage = v)"
+            :image-storage-name="modalDog.imageStorageName"
             storage-path="dog-images"
           />
           <label for="name">
             Name
             <input id="name" v-model="modalDog.name" />
           </label>
+          <label for="date-of-birth">
+            Date of birth
+            <input
+              id="date-of-birth"
+              type="date"
+              min="2003-01-01"
+              class="border-none text-base"
+              v-model="modalDog.dateOfBirth"
+            />
+          </label>
 
-          <div class="flex space-x-2">
-            <label for="age" class="flex-1">
-              Age
-              <input id="age" v-model.number="modalDog.age" />
-            </label>
-            <label for="ageType">
-              <p>&nbsp;</p>
-              <select id="ageType" v-model="modalDog.ageType" class="my-auto">
-                <option v-for="ageType in AgeType">
-                  {{ ageType }}
-                </option>
-              </select>
-            </label>
-          </div>
           <div
             class="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3"
           >
@@ -121,7 +133,7 @@ const onSaveDog = async () => {
 
   <ul class="flex flex-wrap mx-auto justify-center">
     <li v-for="dog in householdDogs" class="mr-4 mt-4">
-      <DogCard :dog="dog.data()" @edit-dog="(dog) => onOpenDogModal(dog)" />
+      <DogCard :dog="dog.data()" @edit-dog="onOpenDogModal(dog)" />
     </li>
   </ul>
 </template>

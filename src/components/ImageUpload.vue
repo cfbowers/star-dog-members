@@ -5,15 +5,21 @@ import { ref as storageRef } from "firebase/storage";
 import { watch } from "vue";
 import { useFirebaseStorage, useStorageFile } from "vuefire";
 
-const { storagePath, imageName, onNewImageStorageName, onNewImageUrl } =
-  defineProps<{
-    storagePath: string;
-    imageName?: string;
-    onNewImageStorageName: (imageStorageName: string) => void;
-    onNewImageUrl: (url: string) => void;
-  }>();
+const {
+  storagePath,
+  imageStorageName,
+  onNewImageStorageName,
+  onNewImageUrl,
+  onUploadStatusChange,
+} = defineProps<{
+  storagePath: string;
+  imageStorageName?: string;
+  onNewImageStorageName: (imageStorageName: string) => void;
+  onNewImageUrl: (url: string) => void;
+  onUploadStatusChange: (url: boolean) => void;
+}>();
 
-const firebaseImageName = imageName ?? uuidv4();
+const firebaseImageName = imageStorageName ?? uuidv4();
 const fullFilePath = `${storagePath}/${firebaseImageName}`;
 const storage = useFirebaseStorage();
 const fileRef = storageRef(storage, fullFilePath);
@@ -28,6 +34,10 @@ const uploadPicture = async (imgData: any) => {
     onNewImageStorageName(firebaseImageName);
   }
 };
+
+watch(uploadTask, () => {
+  onUploadStatusChange(Boolean(uploadTask));
+});
 
 watch(files, () => {
   const imgData = files?.value?.item(0);

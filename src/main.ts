@@ -3,7 +3,7 @@ import { VueFire, VueFireAuth } from "vuefire";
 import { createRouter, createWebHistory } from "vue-router";
 
 import App from "./App.vue";
-import { Home, Auth, NotFound, Profile, Admin } from "./views";
+import { Home, Auth, NotFound, Profile, Admin, CheckIn } from "./views";
 import { firebaseApp } from "./firebase";
 import "./style.css";
 
@@ -15,6 +15,7 @@ const router = createRouter({
     { path: "/login", name: "login", component: Auth },
     { path: "/profile", name: "profile", component: Profile },
     { path: "/admin", name: "admin", component: Admin },
+    { path: "/check-in", name: "check-in", component: CheckIn },
     { path: "/:pathMatch(.*)*", name: "notFound", component: NotFound },
   ],
 });

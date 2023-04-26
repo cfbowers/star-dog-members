@@ -1,10 +1,20 @@
 <script setup lang="ts">
 import { PencilIcon, CheckCircleIcon } from "@heroicons/vue/24/solid";
+import { differenceInMonths } from "date-fns";
 
 import { IDog } from "../types";
 
 const { dog } = defineProps<{ dog: IDog }>();
 defineEmits(["editDog"]);
+
+const getDogAge = (dateOfBirth: string) => {
+  const diffInMonths = differenceInMonths(new Date(), new Date(dateOfBirth));
+  const numAgeYears = Math.floor(diffInMonths / 12);
+  const numAgeMonths = diffInMonths % 12;
+  const yearsString = numAgeYears > 0 ? numAgeYears + " years " : "";
+  const monthsString = numAgeMonths > 0 ? numAgeMonths + " months" : "";
+  return `${yearsString}${monthsString} old`;
+};
 </script>
 
 <template>
@@ -19,7 +29,7 @@ defineEmits(["editDog"]);
       <dl class="mt-1 flex flex-grow flex-col justify-between">
         <dt class="sr-only">Title</dt>
         <dd class="text-sm text-gray-500">
-          {{ `${dog.age} ${dog.ageType} old` }}
+          {{ getDogAge(dog.dateOfBirth) }}
         </dd>
       </dl>
     </div>

@@ -23,6 +23,7 @@ const imageUrl =
 const navigation = [
   { name: "Home", href: "/" },
   { name: "Admin", href: "/admin" },
+  { name: "Check-In", href: "/check-in" },
 ];
 </script>
 
